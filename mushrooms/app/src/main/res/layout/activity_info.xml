@@ -45,7 +45,6 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="15dp"
         android:text="Dimension"
-        android:textAppearance="@android:style/TextAppearance.Material.DatePicker.List.YearLabel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2"
