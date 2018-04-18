@@ -63,7 +63,8 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Image Saved.", Toast.LENGTH_LONG).show()
             }
             // if we are here, everything processed successfully.
-            if (requestCode == IMAGE_GALLERY_REQUEST) {
+            if (requestCode == IMAGE_GALLERY_REQUEST)
+            {
                 // if we are here, we are hearing back from the image gallery.
 
                 // the address of the image on the SD Card.
@@ -83,9 +84,11 @@ class MainActivity : AppCompatActivity() {
                     // show the image to the user
                     if (imgPicture != null) {
                         imgPicture.setImageBitmap(image)
+                        Toast.makeText(this, "Open IMAGE.", Toast.LENGTH_LONG).show()
                     }
 
-                } catch (e: FileNotFoundException) {
+                }
+                catch (e: FileNotFoundException) {
                     e.printStackTrace()
                     // show a message to the user indictating that the image is unavailable.
                     Toast.makeText(this, "Unable to open image", Toast.LENGTH_LONG).show()

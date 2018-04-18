@@ -1,6 +1,7 @@
 import argparse
 import glob
 import os
+import subprocess
 
 from keras import callbacks, Model
 from keras.layers import GlobalAveragePooling2D, Dense
@@ -8,8 +9,11 @@ from keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications.mobilenet import  MobileNet, preprocess_input
 from tensorflow.python.lib.io import file_io
+from PIL import ImageFile
+#os.system('gsutil cp -r gs://anastasia_mushrooms/data .')
+subprocess.call(['gsutil', '-m', 'cp', '-r', 'gs://anastasia_mushrooms/data/', '.'])
 
-os.system('gsutil cp -m gs://anastasia_mushrooms/data .')
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 FC_SIZE = 256
 NB_IV3_LAYERS_TO_FREEZE = -4
 BAT_SIZE = 32
@@ -95,15 +99,13 @@ def train_model(args, job_dir='./tmp/preprocessing'):
             args.train_dir,
             target_size=(224, 224),
             shuffle = True,
-            batch_size=batch_size,
-            class_mode='categorical"')
+            batch_size=batch_size)
 
     validation_generator = test_datagen.flow_from_directory(
             args.val_dir,
             target_size=(224, 224),
             shuffle=True,
-            batch_size=batch_size,
-            class_mode='categorical"')
+            batch_size=batch_size)
 
     print('setup model')
 
@@ -150,13 +152,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
       '--train_dir',
-      default="/data/validation")
+      default="./data/validation")
     parser.add_argument(
         '--val_dir',
-        default="/data/test")
+        default="./data/test")
     parser.add_argument(
       '--job-dir')
-    parser.add_argument("--output_model_file", default="/data/mobilenet_mushrooms1.h5")
+    parser.add_argument("--output_model_file", default="./data/mobilenet_mushrooms1.h5")
     parser.add_argument("--nb_epoch", default=NB_EPOCHS)
     parser.add_argument("--batch_size", default=BAT_SIZE)
     args = parser.parse_args()
