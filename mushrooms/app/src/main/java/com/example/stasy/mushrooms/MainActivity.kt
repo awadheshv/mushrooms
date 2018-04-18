@@ -1,5 +1,6 @@
 package com.example.stasy.mushrooms
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
@@ -17,84 +18,87 @@ import android.os.Environment.DIRECTORY_PICTURES
 import android.os.Environment.getExternalStoragePublicDirectory
 import android.widget.Toast
 import java.io.InputStream
+import android.provider.MediaStore
+import android.Manifest.permission
+import android.content.pm.PackageManager
+import android.support.v4.app.NotificationCompat.getExtras
+import android.support.v4.app.NotificationCompat.getExtras
+
+
+
+
+
 
 
 class MainActivity : AppCompatActivity() {
 
-    val IMAGE_GALLERY_REQUEST = 20
-    val CAMERA_REQUEST_CODE = 228
-    val CAMERA_PERMISSION_REQUEST_CODE = 4192
-    private val imgPicture: ImageView? = null
+    private val RESULT_OPEN_GALLERY = 1
+    private val RESULT_OPEN_CAMERA = 0
+    private var imgDecodableString: String? = null
+    private val MY_CAMERA_PERMISSION_CODE = 100
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
 
         var camera_button = findViewById(R.id.button) as Button
         var gallery_button = findViewById(R.id.button2) as Button
         camera_button.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View) {
-                val scrollingActivity = Intent(applicationContext, Camera::class.java)
-                startActivity(scrollingActivity);
+                val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                if (takePictureIntent.resolveActivity(packageManager) != null) {
+                    startActivityForResult(takePictureIntent, RESULT_OPEN_CAMERA)
+                }
+
             }
         })
         gallery_button.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View) {
-                // invoke the image gallery using an implict intent.
-                val photoPickerIntent = Intent(Intent.ACTION_PICK)
 
-                // where do we want to find the data?
-                val pictureDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                val pictureDirectoryPath = pictureDirectory.getPath()
-                // finally, get a URI representation
-                val data = Uri.parse(pictureDirectoryPath)
 
-                // set the data and type.  Get all image types.
-                photoPickerIntent.setDataAndType(data, "image/*")
+                val galleryIntent = Intent(Intent.ACTION_PICK,
+                                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
-                // we will invoke this activity, and get something back from it.
-                startActivityForResult(photoPickerIntent, IMAGE_GALLERY_REQUEST)
+                startActivityForResult(galleryIntent, RESULT_OPEN_GALLERY);
             }
         })
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == CAMERA_REQUEST_CODE) {
-                Toast.makeText(this, "Image Saved.", Toast.LENGTH_LONG).show()
-            }
-            // if we are here, everything processed successfully.
-            if (requestCode == IMAGE_GALLERY_REQUEST)
-            {
-                // if we are here, we are hearing back from the image gallery.
 
-                // the address of the image on the SD Card.
-                val imageUri = data.data
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        try {
+            if(resultCode == Activity.RESULT_OK && null != data)
+            {// When an Image is picked
+            if (requestCode == RESULT_OPEN_GALLERY) {
+                // Get the Image from data
 
-                // declare a stream to read the image data from the SD Card.
-                val inputStream: InputStream?
+                val selectedImage = data.data
+                val filePathColumn = arrayOf(MediaStore.Images.Media.DATA)
 
-                // we are getting an input stream, based on the URI of the image.
-                try {
-                    inputStream = contentResolver.openInputStream(imageUri!!)
+                // Get the cursor
+                val cursor = contentResolver.query(selectedImage!!,
+                        filePathColumn, null, null, null)
+                // Move to first row
+                cursor!!.moveToFirst()
 
-                    // get a bitmap from the stream.
-                    val image = BitmapFactory.decodeStream(inputStream)
-
-
-                    // show the image to the user
-                    if (imgPicture != null) {
-                        imgPicture.setImageBitmap(image)
-                        Toast.makeText(this, "Open IMAGE.", Toast.LENGTH_LONG).show()
-                    }
-
-                }
-                catch (e: FileNotFoundException) {
-                    e.printStackTrace()
-                    // show a message to the user indictating that the image is unavailable.
-                    Toast.makeText(this, "Unable to open image", Toast.LENGTH_LONG).show()
-                }
+                val columnIndex = cursor.getColumnIndex(filePathColumn[0])
+                imgDecodableString = cursor.getString(columnIndex)
+                cursor.close()
+                Toast.makeText(this, "Image choosed",
+                        Toast.LENGTH_LONG).show()
 
             }
+            if (requestCode == RESULT_OPEN_CAMERA) {
+                val extras = data.extras
+                val imageBitmap = extras.get("data") as Bitmap
+                Toast.makeText(this, "Image taken",
+                        Toast.LENGTH_LONG).show()
+            }
+        }
+        }catch (e: Exception) {
+            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+                    .show()
         }
     }
 }
