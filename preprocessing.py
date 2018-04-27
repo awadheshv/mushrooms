@@ -4,6 +4,7 @@ import os
 import subprocess
 
 from keras import callbacks, Model
+from keras.callbacks import ModelCheckpoint
 from keras.layers import GlobalAveragePooling2D, Dense
 from keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
@@ -17,7 +18,9 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 FC_SIZE = 256
 NB_IV3_LAYERS_TO_FREEZE = -4
 BAT_SIZE = 32
-NB_EPOCHS = 3
+NB_EPOCHS = 20
+top_epochs = 20
+fit_epochs = 50
 
 def get_nb_files(directory):
     if not os.path.exists(directory):
@@ -52,9 +55,9 @@ def setup_to_finetune(model):
    Args:
      model: keras model
    """
-   for layer in model.layers[:NB_IV3_LAYERS_TO_FREEZE]:
+   for layer in model.layers[:70]:
       layer.trainable = False
-   for layer in model.layers[NB_IV3_LAYERS_TO_FREEZE:]:
+   for layer in model.layers[70:]:
       layer.trainable = True
    model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
                  loss='categorical_crossentropy', metrics=['accuracy'])
@@ -62,11 +65,11 @@ def setup_to_finetune(model):
 def train_model(args, job_dir='./tmp/preprocessing'):
     print('preparing dataset')
     # print(nb_val_samples)
-    checkpoint = callbacks.ModelCheckpoint(args.output_model_file, monitor='val_acc', verbose=1, save_best_only=True,  mode='max')
-    callbacks_list = [checkpoint]
+    checkpoint = callbacks.ModelCheckpoint(args.output_model_file, monitor='val_acc', verbose=1, save_best_only=True,
+                                           mode='max')
     nb_classes = 75
-    nb_train_samples = get_nb_files(args.train_dir) / BAT_SIZE
-    nb_val_samples = get_nb_files(args.val_dir) / BAT_SIZE
+    nb_train_samples = get_nb_files(args.train_dir) // BAT_SIZE
+    nb_val_samples = get_nb_files(args.val_dir) // BAT_SIZE
     nb_epoch = int(args.nb_epoch)
     batch_size = int(args.batch_size)
 
@@ -121,11 +124,11 @@ def train_model(args, job_dir='./tmp/preprocessing'):
     model.fit_generator(
             train_datagen,
             steps_per_epoch=nb_train_samples,
-            epochs=nb_epoch,
+            epochs=top_epochs,
             validation_data=validation_generator,
             validation_steps=nb_val_samples,
             class_weight='auto',
-            callbacks=callbacks_list)
+            callbacks=[checkpoint])
     model.save(args.output_model_file)
 
     # fine-tuning
@@ -134,30 +137,28 @@ def train_model(args, job_dir='./tmp/preprocessing'):
     model.fit_generator(
             train_datagen,
             steps_per_epoch=nb_train_samples,
-            epochs=nb_epoch,
+            epochs=fit_epochs,
             validation_data=validation_generator,
             validation_steps=nb_val_samples,
             class_weight='auto',
-            callbacks=callbacks_list)
+            callbacks=[checkpoint])
 
     model.save(args.output_model_file)
 
-    with file_io.FileIO(args.output_model_file, mode='r') as input_f:
-        with file_io.FileIO(job_dir + '/mobilenet_mushrooms1.h5', mode='w+') as output_f:
+    scores = model.evaluate_generator(validation_generator, nb_val_samples)
+    print("Аккуратность на тестовых данных: %.2f%%" % (scores[1] * 100))
+
+    with file_io.FileIO(args.output_model_file, mode='rb') as input_f:
+        with file_io.FileIO(job_dir + '/mobilenet_mushrooms1.h5', mode='wb+') as output_f:
             output_f.write(input_f.read())
 
 
 if __name__ == '__main__':
     # Parse the input arguments for common Cloud ML Engine options
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-      '--train_dir',
-      default="./data/validation")
-    parser.add_argument(
-        '--val_dir',
-        default="./data/test")
-    parser.add_argument(
-      '--job-dir')
+    parser.add_argument('--train_dir', default="./data/validation")
+    parser.add_argument('--val_dir', default="./data/test")
+    parser.add_argument('--job-dir')
     parser.add_argument("--output_model_file", default="./data/mobilenet_mushrooms1.h5")
     parser.add_argument("--nb_epoch", default=NB_EPOCHS)
     parser.add_argument("--batch_size", default=BAT_SIZE)

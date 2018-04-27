@@ -4,8 +4,14 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import org.json.JSONObject
 import android.R.raw
+import android.content.Intent
+import android.provider.MediaStore
 import android.util.Log
+import android.view.View
 import android.widget.TextView
+import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_info.*
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.*
 
 
@@ -16,7 +22,10 @@ class Info : AppCompatActivity() {
         setContentView(R.layout.activity_info)
 
         val mushroom = intent.getStringExtra("Mushroom")
-        val info : ArrayList<String> = get_info(mushroom)
+        Toast.makeText(this, "mushroom " + mushroom, Toast.LENGTH_LONG)
+                .show()
+        var _mushroom = mushroom.split("_")[0] + " " + mushroom.split("_")[1]
+        var info = get_info(_mushroom)
 
         val mushroomView = findViewById(R.id.textView) as TextView
         val poisonousView = findViewById(R.id.textView2) as TextView
@@ -27,6 +36,15 @@ class Info : AppCompatActivity() {
         poisonousView.setText(info[1])
         dimensionView.setText(info[2])
         descriptionView.setText(info[3])
+
+        showMushroom.setOnClickListener(object : View.OnClickListener {
+            override fun onClick(v: View) {
+                val intent = Intent(applicationContext, ShowMushroom::class.java)
+                intent.putExtra("Mushroom", _mushroom)
+                startActivity(intent)
+            }
+        })
+
     }
 
 
@@ -66,8 +84,8 @@ class Info : AppCompatActivity() {
             val dimension_word :String = "Dimensions"
             val description_word :String = "Description"
 
-            val dim_ind :Int = description.lastIndexOf(dimension_word)+2
-            val descr_ind :Int = description.lastIndexOf(description_word)+2
+            val dim_ind :Int = description.lastIndexOf(dimension_word)+10
+            val descr_ind :Int = description.lastIndexOf(description_word)+11
             info.add(description.substring(dim_ind, descr_ind-description_word.length-1))
             info.add(description.substring(descr_ind))
         }
