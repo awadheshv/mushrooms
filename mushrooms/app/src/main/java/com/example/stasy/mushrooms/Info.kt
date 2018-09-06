@@ -1,18 +1,16 @@
 package com.example.stasy.mushrooms
 
-import android.support.v7.app.AppCompatActivity
-import android.os.Bundle
-import org.json.JSONObject
-import android.R.raw
 import android.content.Intent
-import android.provider.MediaStore
+import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_info.*
-import kotlinx.android.synthetic.main.activity_main.*
-import java.io.*
+import org.json.JSONObject
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 
 class Info : AppCompatActivity() {
@@ -24,7 +22,7 @@ class Info : AppCompatActivity() {
         val mushroom = intent.getStringExtra("Mushroom")
         Toast.makeText(this, "mushroom " + mushroom, Toast.LENGTH_LONG)
                 .show()
-        var _mushroom = mushroom.split("_")[0] + " " + mushroom.split("_")[1]
+        var _mushroom = mushroom.replace('_', ' ');
         var info = get_info(_mushroom)
 
         val mushroomView = findViewById(R.id.textView) as TextView
@@ -48,31 +46,26 @@ class Info : AppCompatActivity() {
     }
 
 
-    fun get_info(mushroom : String): ArrayList<String> {
+    fun get_info(mushroom: String): ArrayList<String> {
         //Get Data From Text Resource File Contains Json Data.
         val inputStream = resources.openRawResource(R.raw.data)
         val byteArrayOutputStream = ByteArrayOutputStream()
-        val info : ArrayList<String> = ArrayList<String>()
+        val info: ArrayList<String> = ArrayList<String>()
 
         var ctr: Int
-        try
-        {
+        try {
             ctr = inputStream.read()
-            while (ctr != -1)
-            {
+            while (ctr != -1) {
                 byteArrayOutputStream.write(ctr)
                 ctr = inputStream.read()
             }
             inputStream.close()
-        }
-        catch (e: IOException)
-        {
+        } catch (e: Throwable) {
             e.printStackTrace()
         }
 
         Log.v("Text Data", byteArrayOutputStream.toString())
-        try
-        {
+        try {
             // Parse the data into jsonobject to get original data in form of json.
             val jObject = JSONObject(byteArrayOutputStream.toString())
             val description = jObject.getString(mushroom)
@@ -81,16 +74,14 @@ class Info : AppCompatActivity() {
             info.add(tokens[0] + " " + tokens[1])
             info.add(tokens[2])
 
-            val dimension_word :String = "Dimensions"
-            val description_word :String = "Description"
+            val dimension_word: String = "Dimensions"
+            val description_word: String = "Description"
 
-            val dim_ind :Int = description.lastIndexOf(dimension_word)+10
-            val descr_ind :Int = description.lastIndexOf(description_word)+11
-            info.add(description.substring(dim_ind, descr_ind-description_word.length-1))
+            val dim_ind: Int = description.lastIndexOf(dimension_word) + 10
+            val descr_ind: Int = description.lastIndexOf(description_word) + 11
+            info.add(description.substring(dim_ind, descr_ind - description_word.length - 1))
             info.add(description.substring(descr_ind))
-        }
-        catch (e: Exception)
-        {
+        } catch (e: Exception) {
             e.printStackTrace()
         }
         return info

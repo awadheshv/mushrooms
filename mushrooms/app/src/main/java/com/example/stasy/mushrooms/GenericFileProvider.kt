@@ -2,4 +2,4 @@ package com.example.stasy.mushrooms
 
 import android.support.v4.content.FileProvider
 
-class GenericFileProvider: FileProvider()
+class GenericFileProvider : FileProvider()

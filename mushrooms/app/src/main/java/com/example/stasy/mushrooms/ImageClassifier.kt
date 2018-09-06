@@ -7,7 +7,7 @@ import java.util.*
 
 private const val ENABLE_LOG_STATS = false
 
-class ImageClassifier (
+class ImageClassifier(
         private val inputName: String,
         private val outputName: String,
         private val imageSize: Long,
@@ -56,6 +56,7 @@ class ImageClassifier (
         return PriorityQueue(
                 labels.size,
                 Comparator { (_, rConfidence), (_, lConfidence) ->
-                    Float.compare(lConfidence, rConfidence) })
+                    Float.compare(lConfidence, rConfidence)
+                })
     }
 }

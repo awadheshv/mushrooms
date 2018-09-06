@@ -5,18 +5,13 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
+import android.provider.MediaStore
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
-import android.provider.MediaStore
-import java.io.File
-import android.Manifest.permission
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import pub.devrel.easypermissions.EasyPermissions
 
 
@@ -47,7 +42,7 @@ class MainActivity : AppCompatActivity() {
                 //val currentPhotoUri = getUriFromFilePath(this, photoFilePath)
 
                 val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-               // takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri)
+                // takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri)
                 if (takePictureIntent.resolveActivity(packageManager) != null) {
                     startActivityForResult(takePictureIntent, REQUEST_OPEN_CAMERA)
                 }
@@ -59,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
 
                 val galleryIntent = Intent(Intent.ACTION_PICK,
-                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
                 startActivityForResult(galleryIntent, RESULT_OPEN_GALLERY);
             }
@@ -76,8 +71,9 @@ class MainActivity : AppCompatActivity() {
                 GRAPH_OUTPUT_NAME
         )
     }
+
     private fun classifyPhoto(imageBitmap: Bitmap) {
-       val photoBitmap = imageBitmap
+        val photoBitmap = imageBitmap
         // / val photoBitmap = BitmapFactory.decodeFile(file.absolutePath)
         val croppedBitmap = getCroppedBitmap(photoBitmap)
         classifyAndShowResult(croppedBitmap)
@@ -105,8 +101,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         try {
-            if(resultCode == Activity.RESULT_OK && null != data)
-            {// When an Image is picked
+            if (resultCode == Activity.RESULT_OK && null != data) {// When an Image is picked
                 if (requestCode == RESULT_OPEN_GALLERY) {
                     // Get the Image from data
                     val selectedImage = data.data
@@ -134,8 +129,8 @@ class MainActivity : AppCompatActivity() {
                     val imageBitmap = extras.get("data") as Bitmap
                     classifyPhoto(imageBitmap)
                 }
-           }
-        }catch (e: Exception) {
+            }
+        } catch (e: Exception) {
             Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
                     .show()
         }

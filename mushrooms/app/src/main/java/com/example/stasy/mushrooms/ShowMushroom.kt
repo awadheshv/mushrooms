@@ -1,7 +1,7 @@
 package com.example.stasy.mushrooms
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 
 class ShowMushroom : AppCompatActivity() {
 
@@ -9,6 +9,6 @@ class ShowMushroom : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_show_mushroom)
 
-        
+
     }
 }
